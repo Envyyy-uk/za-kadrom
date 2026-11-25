@@ -3,8 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-</head>
-<body>
 <title>За кадром: команда</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -90,6 +88,8 @@ ol.steps .who{font:500 12px var(--f-mono);color:var(--muted);letter-spacing:.06e
 .links small{display:block;color:var(--muted)}
 footer{color:var(--muted);font-size:13px;padding-block:36px 90px}
 </style>
+</head>
+<body>
 
 <div id="root"></div>
 <script type="text/plain" id="static-src"><header class="wrap">
@@ -344,11 +344,11 @@ function buildDoc(){
   return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>'+pre+style+'<div id="root"></div>\n<script type="text/plain" id="static-src">'+src+"<\/script>\n"+'<script type="application/json" id="state">'+json+"<\/script>\n"+script+"</body></html>";
 }
 async function doSave(){
-  if(saving)return;saving=true;renderEdit();
+  if(saving)return;saving=true;renderEdit();const lockEls=[$("list"),$("filters"),$("editslot")];lockEls.forEach(n=>n&&(n.inert=true));
   try{await api.publish(buildDoc());dirty=false;saving=false;editing=false;render()}
-  catch(e){saving=false;const code=e&&e.code;
+  catch(e){saving=false;lockEls.forEach(n=>n&&(n.inert=false));const code=e&&e.code;
     if(code==="conflict"){dirty=false;renderEdit();const m=$("emsg");if(m)m.textContent="Хтось зберіг раніше, сторінка оновлюється"}
-    else if(["not_writer","not_granted","not_declared","consent_required","capability_disabled","capability_removed"].includes(code)){dirty=false;api=null;editing=false;render()}
+    else if(["not_writer","not_granted","not_declared","consent_required","capability_disabled","capability_removed"].includes(code)){dirty=false;api=null;editing=false;location.reload()}
     else{renderEdit();const m=$("emsg");if(m)m.textContent=code==="rate_limited"?"Забагато збережень, спробуй за хвилину":"Не вдалося зберегти, спробуй ще раз"}}
 }
 window.addEventListener("beforeunload",e=>{if(dirty&&!saving){e.preventDefault();e.returnValue=""}});
