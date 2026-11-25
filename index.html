@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>За кадром: команда</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style id="page-style">
+/* Layout: one reading column; status board first (counts, then grouped checklist), then roles, briefs, process, links. Dark single look = podcast brand. */
+:root{
+  --bg:#0c0a0d; --panel:#16121a; --panel2:#1d171f; --line:#2a2129; --fg:#f5f2f0; --muted:#a99f9d;
+  --red:#d61c34; --have:#3fbf7f; --need:#f2b632; --later:#6f9be8; --skip:#7d7378; --ask:#c78bd6;
+  --f-display:"Unbounded","Segoe UI Black",system-ui,sans-serif;
+  --f-body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--f-body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--fg)}
+header{padding-block:28px 12px}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.14em;color:var(--muted);display:flex;align-items:center;gap:8px;text-transform:uppercase}
+.eyebrow b{width:10px;height:10px;border-radius:50%;background:var(--red)}
+h1{font:800 clamp(28px,7vw,42px)/1.08 var(--f-display);margin:12px 0 10px;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:62ch}
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.menu{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-block:8px}
+.menu a{flex:none;text-decoration:none;font:600 14px var(--f-body);color:var(--muted);padding:6px 12px;border-radius:999px;border:1px solid var(--line)}
+.menu a:hover,.menu a:focus-visible{color:var(--fg);border-color:var(--fg);outline:none}
+section{padding-block:34px 8px;scroll-margin-top:64px}
+h2{font:600 22px/1.2 var(--f-display);margin:0 0 6px;text-wrap:balance}
+.hint{color:var(--muted);margin:0 0 18px;max-width:64ch}
+h3{font:700 17px/1.3 var(--f-body);margin:0 0 6px}
+.counts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:18px 0 6px}
+.count{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.count strong{display:block;font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.count span{font-size:13px;color:var(--muted)}
+@media (max-width:560px){.counts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--f-mono);letter-spacing:.04em;padding:3px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-have{color:var(--have)} .s-need{color:var(--need)} .s-later{color:var(--later)} .s-skip{color:var(--skip)} .s-ask{color:var(--ask)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 4px}
+.filters button,.btn{font:600 14px var(--f-body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn:hover,.filters button:hover{border-color:var(--fg)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.btn.primary{background:var(--red);border-color:var(--red)}
+.btn[disabled]{opacity:.5;cursor:default}
+.group{margin-top:22px}
+.group h3{font:600 13px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--c,var(--line));border-radius:8px;margin-top:6px}
+.item .name{font-weight:700}
+.item .why{grid-column:1/-1;color:var(--muted);font-size:14.5px}
+.item .note{grid-column:1/-1;font-size:14px;color:var(--fg);background:var(--panel2);border-radius:6px;padding:6px 10px}
+.item .note::before{content:"Примітка: ";color:var(--muted)}
+.edit-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.edit-row select,.edit-row input,.add input,.add select,.add textarea{font:15px var(--f-body);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
+.edit-row input{flex:1 1 220px}
+.del{background:none;border:0;color:var(--muted);cursor:pointer;font:600 13px var(--f-body);text-decoration:underline}
+.editbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--panel2);border-top:1px solid var(--line);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.editbar .in{max-width:820px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.editbar .msg{font-size:14px;color:var(--muted)}
+.add{display:grid;gap:8px;margin-top:16px;padding:14px;border:1px dashed var(--line);border-radius:8px}
+.add .row{display:flex;flex-wrap:wrap;gap:8px}
+.add .row>*{flex:1 1 160px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.cards{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.card .role{font:500 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.card ul,.brief ul{margin:6px 0 0;padding-left:20px}
+.card li,.brief li{margin:3px 0}
+.card .out{margin-top:10px;font-size:14px;color:var(--muted)}
+.card .out b{color:var(--fg)}
+.brief{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:10px}
+.brief .lbl{font:500 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.no{color:var(--red);font-weight:700}
+ol.steps{list-style:none;padding:0;margin:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+ol.steps li::before{content:counter(s);font:800 18px/1.4 var(--f-display);color:var(--red)}
+ol.steps .who{font:500 12px var(--f-mono);color:var(--muted);letter-spacing:.06em}
+.links{display:grid;gap:8px}
+.links a{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.links a:hover{border-color:var(--fg)}
+.links small{display:block;color:var(--muted)}
+footer{color:var(--muted);font-size:13px;padding-block:36px 90px}
+</style>
+
+<div id="root"></div>
+<script type="text/plain" id="static-src"><header class="wrap">
+  <div class="eyebrow"><b></b>Подкаст · Лондон · для команди</div>
+  <h1>«За кадром»: що є, чого бракує, хто що робить</h1>
+  <p class="lead">Одна сторінка для SMM, відеографа і монтажера. Тут написано, що вже готово, що ще треба знайти чи купити і чого ми свідомо не робимо. Нижче описано, хто за що відповідає і як іде випуск від зйомки до публікації.</p>
+</header>
+<nav class="top"><div class="wrap menu">
+  <a href="#stan">Що є і чого нема</a><a href="#proekt">Про проєкт</a><a href="#roli">Хто що робить</a><a href="#video">Відеографу</a><a href="#smm">SMM</a><a href="#proces">Процес</a><a href="#ne-robymo">Не робимо</a><a href="#lynky">Посилання</a>
+</div></nav>
+
+<main class="wrap">
+<section id="stan">
+  <h2>Що є і чого нема</h2>
+  <p class="hint">Стан на <span id="upd"></span>. Сторінку оновлює ведучий. Якщо тут написано «уточнити», напиши ведучому: ці речі ще не вирішені.</p>
+  <div class="counts" id="counts"></div>
+  <div class="legend">
+    <span><span class="pill s-have">Є</span> вже готово</span>
+    <span><span class="pill s-need">Треба</span> потрібно до першої зйомки</span>
+    <span><span class="pill s-later">Пізніше</span> після пілоту</span>
+    <span><span class="pill s-ask">Уточнити</span> ще не вирішено</span>
+    <span><span class="pill s-skip">Не треба</span> свідомо не робимо</span>
+  </div>
+  <div class="filters" id="filters" role="group" aria-label="Фільтр за статусом"></div>
+  <div id="list"></div>
+  <div id="editslot"></div>
+</section>
+
+<section id="proekt">
+  <h2>Про проєкт за 30 секунд</h2>
+  <div class="cards">
+    <div class="card"><h3>Що це</h3><p>Розмовний подкаст з українцями в Лондоні: власники закладів, студенти, музиканти, креатори. Говоримо про шлях людини і про те, що зазвичай лишається за кадром.</p></div>
+    <div class="card"><h3>Тривалість</h3><p>Запис 45–65 хв, після монтажу 30–45 хв. З кожного випуску ще 5–8 коротких кліпів.</p></div>
+    <div class="card"><h3>Тон</h3><p>Тепло, чесно, без жовтизни. Від Гордона беремо підготовку до гостя, від Дудя динаміку і монтаж, від Тимошенка легкість.</p></div>
+    <div class="card"><h3>Пілот</h3><p>4 гості: власники Podval × Haze, Маша (кіно і TikTok), Настя (LSE), DJ Настя Eif. Сценарії на всіх чотирьох уже готові.</p></div>
+  </div>
+</section>
+
+<section id="roli">
+  <h2>Хто що робить</h2>
+  <p class="hint">Кожен відповідає за свою частину і віддає результат далі в домовлений термін.</p>
+  <div class="cards">
+    <div class="card"><div class="role">Ведучий</div><h3>Гості, сценарій, розмова</h3>
+      <ul><li>Домовляється з гостем і локацією, отримує дозвіл знімати.</li><li>Готує сценарій і питання на сайті-студії.</li><li>Веде запис і стежить за таймінгом.</li><li>Останнім затверджує монтаж і тексти.</li></ul>
+      <p class="out"><b>Віддає:</b> дату, адресу, сценарій і список кліпових моментів за 3 дні до зйомки.</p></div>
+    <div class="card"><div class="role">Відеограф</div><h3>Картинка і звук</h3>
+      <ul><li>Ставить камери, світло і петлички.</li><li>Пише звук на кожного окремо.</li><li>Знімає перебивки: заклад, руки, деталі.</li><li>Того ж дня скидає всі файли в спільну папку.</li></ul>
+      <p class="out"><b>Віддає:</b> сирі відео і звук у день зйомки.</p></div>
+    <div class="card"><div class="role">Монтажер</div><h3>Повний випуск і кліпи</h3>
+      <ul><li>Синхронізує камери і звук, чистить шум.</li><li>Збирає холодний старт, повний випуск і кліпи.</li><li>Робить субтитри до вертикальних кліпів.</li></ul>
+      <p class="out"><b>Віддає:</b> повний випуск за 7 днів, кліпи за 10 днів після зйомки.</p></div>
+    <div class="card"><div class="role">SMM</div><h3>Публікації і аудиторія</h3>
+      <ul><li>Пише назви, описи, підписи і готує обкладинки.</li><li>Веде графік публікацій на всіх платформах.</li><li>Відмічає гостя і заклад, відповідає на коментарі.</li><li>Раз на тиждень коротко звітує: що зайшло, а що ні.</li></ul>
+      <p class="out"><b>Віддає:</b> план постів за 2 дні до виходу випуску.</p></div>
+  </div>
+  <p class="hint" style="margin-top:14px">Якщо одна людина знімає і монтує, на неї просто лягають обидві ролі. Терміни лишаються ті самі.</p>
+</section>
+
+<section id="video">
+  <h2>Бриф відеографу</h2>
+  <div class="brief"><div class="lbl">Кадр</div><ul>
+    <li>Дві камери: загальний план (ведучий і гість) і крупний план гостя.</li>
+    <li>Третя камера в руках, тільки на рубрику: коктейль, музика, показ чогось.</li>
+    <li>На всіх камерах однакова частота кадрів і баланс білого. Роздільність 4K, якщо камера тягне, якщо ні, то 1080p.</li>
+    <li>Гостя тримай ближче до центру кадру: з горизонтального відео потім вирізатимемо вертикальні кліпи.</li></ul></div>
+  <div class="brief"><div class="lbl">Світло</div><ul>
+    <li>Тепле, м'яке, без верхнього денного світла в обличчя.</li>
+    <li>Фон має бути видно: бар, сцена, кімната. Глядач повинен розуміти, де ми.</li></ul></div>
+  <div class="brief"><div class="lbl">Звук</div><ul>
+    <li>Петличка на кожного, хто говорить. Власників троє, тож потрібно 4 петлички разом з ведучим.</li>
+    <li>На початку запиши 10 секунд тиші в приміщенні: за нею монтажер чистить шум.</li>
+    <li>Плесни в долоні в кадрі на старті: так легше синхронізувати камери.</li>
+    <li>Під час музичної рубрики пиши звук з пульта окремо, якщо є лінійний вихід.</li></ul></div>
+  <div class="brief"><div class="lbl">Файли</div><ul>
+    <li>Назва папки: <code>дата_гість</code>, наприклад <code>2026-12-05_podval</code>. Усередині папки <code>cam-a</code>, <code>cam-b</code>, <code>audio</code>, <code>broll</code>.</li>
+    <li>Візьми запасні карти пам'яті і заряджені батареї. Нічого не видаляй з карт, доки файли не лежать у спільній папці.</li></ul></div>
+</section>
+
+<section id="smm">
+  <h2>Бриф SMM</h2>
+  <div class="brief"><div class="lbl">Де виходимо</div><ul>
+    <li>YouTube: повний випуск і Shorts.</li>
+    <li>TikTok та Instagram Reels: вертикальні кліпи.</li>
+    <li>Телеграм: анонс і посилання.</li></ul></div>
+  <div class="brief"><div class="lbl">Ритм на старті</div><ul>
+    <li>Повний випуск раз на два тижні.</li>
+    <li>3–4 кліпи на тиждень, перший у день виходу випуску.</li>
+    <li>Анонс гостя за 2–3 дні до виходу.</li></ul></div>
+  <div class="brief"><div class="lbl">Правила</div><ul>
+    <li>Відмічай гостя і заклад у кожному пості.</li>
+    <li>Чужі пісні тримай до 10–15 секунд або приглушуй, інакше платформа може заблокувати відео.</li>
+    <li>Алкоголь у кліпах: показуємо, як готують напій, і назву, а не саме пиття. TikTok гірше показує відео, де п'ють.</li>
+    <li>Підпис до кліпу: одна фраза з розмови і питання до глядача. Хештеги не обов'язкові.</li>
+    <li>Перед публікацією покажи текст ведучому. Гостю за бажанням: якщо він попросив, обов'язково.</li></ul></div>
+</section>
+
+<section id="proces">
+  <h2>Як іде один випуск</h2>
+  <ol class="steps">
+    <li><div><h3>Підготовка</h3>Гість, локація, дата, сценарій. Відеограф отримує адресу і план.<div class="who">Ведучий · за 3–7 днів</div></div></li>
+    <li><div><h3>Зйомка</h3>Сетап займає годину, запис ще годину. Після запису перебивки і фото гостя для обкладинки.<div class="who">Ведучий + відеограф · день зйомки</div></div></li>
+    <li><div><h3>Файли</h3>Усе в спільну папку того ж вечора.<div class="who">Відеограф · день зйомки</div></div></li>
+    <li><div><h3>Монтаж</h3>Спершу повний випуск, далі кліпи. Ведучий дивиться чорновик і пише правки одним списком.<div class="who">Монтажер · 7–10 днів</div></div></li>
+    <li><div><h3>Перевірка гостем</h3>Тільки якщо гість просив: показуємо фінальну версію до виходу.<div class="who">Ведучий · 1–2 дні</div></div></li>
+    <li><div><h3>Публікація</h3>Обкладинка, назва, опис, таймкоди і посилання на гостя. Анонс у всіх соцмережах.<div class="who">SMM · день виходу</div></div></li>
+    <li><div><h3>Кліпи і звіт</h3>Кліпи за графіком два тижні. Через тиждень коротко: перегляди, що зайшло, що змінити.<div class="who">SMM · 2 тижні</div></div></li>
+  </ol>
+</section>
+
+<section id="ne-robymo">
+  <h2>Чого ми свідомо не робимо</h2>
+  <p class="hint">Щоб не витрачати час і гроші на те, що зараз не допоможе.</p>
+  <div class="cards">
+    <div class="card"><h3><span class="no">✕</span> Не орендуємо студію</h3><p>Знімаємо там, де живе гість: у барі, вдома, на сцені. Місце стає частиною історії.</p></div>
+    <div class="card"><h3><span class="no">✕</span> Не купуємо кінокамери</h3><p>Для старту вистачить двох нормальних камер або телефонів, доброго світла і петличок. Звук важливіший за картинку.</p></div>
+    <div class="card"><h3><span class="no">✕</span> Не постимо щодня</h3><p>Краще 3–4 сильні кліпи на тиждень, ніж щодня абищо.</p></div>
+    <div class="card"><h3><span class="no">✕</span> Не запускаємо рекламу на старті</h3><p>Спершу дивимося, які випуски і кліпи заходять самі.</p></div>
+    <div class="card"><h3><span class="no">✕</span> Не робимо трьохгодинних випусків</h3><p>Новий глядач має дійти до кінця, тому тримаємося 30–45 хвилин.</p></div>
+    <div class="card"><h3><span class="no">✕</span> Не шукаємо скандалів</h3><p>Гострі питання ставимо, але гостя не підставляємо. Хочемо, щоб наступні гості приходили самі.</p></div>
+  </div>
+</section>
+
+<section id="lynky">
+  <h2>Посилання</h2>
+  <div class="links">
+    <a href="https://www.youtube.com/@zakadrom.london" target="_blank" rel="noopener">YouTube @zakadrom.london<small>Канал подкасту</small></a>
+    <a href="https://claude.ai/artifact/FEHQGNFU1N5kSe6SVuwxfo" target="_blank" rel="noopener">Студія «За кадром»<small>Сценарії, питання, таймер запису і чекліст. Доступ дає ведучий</small></a>
+    <a href="https://claude.ai/artifact/947BNivaHVcLnW4J5uJHpC" target="_blank" rel="noopener">Формат подкасту<small>Повний опис формату і рубрик. Доступ дає ведучий</small></a>
+    <a href="https://crimsonlust17.netlify.app" target="_blank" rel="noopener">Посилання в біо<small>Сюди ведемо людей з усіх соцмереж</small></a>
+  </div>
+</section>
+</main>
+<footer class="wrap">«За кадром» · Лондон. Сторінку оновлює ведучий, тому за цим посиланням завжди актуальна версія.</footer></script>
+
+<script type="application/json" id="state">{"updated":"2026-11-25","items":[
+{"id":"yt","cat":"Канал і бренд","name":"YouTube-канал @zakadrom.london","why":"Основне місце для повних випусків.","status":"have","note":""},
+{"id":"brand","cat":"Канал і бренд","name":"Аватар і банер каналу","why":"Готові, у фірмових кольорах: чорний, червоний, винний.","status":"have","note":""},
+{"id":"bio","cat":"Канал і бренд","name":"Сайт для посилання в біо","why":"Одне посилання на всі соцмережі.","status":"have","note":""},
+{"id":"socials","cat":"Канал і бренд","name":"TikTok та Instagram саме подкасту","why":"Окремі акаунти чи публікуємо з особистих, ще не вирішено.","status":"ask","note":""},
+{"id":"tg","cat":"Канал і бренд","name":"Телеграм-канал","why":"Анонси і посилання на нові випуски.","status":"ask","note":""},
+{"id":"jingle","cat":"Канал і бренд","name":"Музична заставка на 5–10 секунд","why":"Однакова на початку і в кінці, щоб випуски впізнавали. Музика має бути без авторських прав або власна.","status":"need","note":""},
+{"id":"thumb","cat":"Канал і бренд","name":"Шаблон обкладинки для YouTube","why":"Однаковий стиль: фото гостя, 3–4 слова і логотип.","status":"need","note":""},
+{"id":"subs","cat":"Канал і бренд","name":"Стиль субтитрів для кліпів","why":"Один шрифт і колір на всіх кліпах.","status":"need","note":""},
+{"id":"format","cat":"Контент","name":"Формат і структура випуску","why":"Як іде випуск по хвилинах, рубрики, бліц і фінальне питання.","status":"have","note":""},
+{"id":"scripts","cat":"Контент","name":"Сценарії для 4 пілотних гостей","why":"Питання, таймінг, моменти для кліпів. Лежать на сайті-студії.","status":"have","note":""},
+{"id":"guests","cat":"Контент","name":"Пілотні гості","why":"Власники Podval × Haze, Маша, Настя (LSE), DJ Настя Eif.","status":"have","note":"Дати запису ще погоджуємо"},
+{"id":"next","cat":"Контент","name":"Список гостей після пілоту","why":"5–10 імен наперед, щоб не було пауз між випусками.","status":"later","note":""},
+{"id":"cams","cat":"Техніка","name":"Дві камери на штативах","why":"Загальний план і крупний план гостя.","status":"ask","note":""},
+{"id":"cam3","cat":"Техніка","name":"Третя камера в руках","why":"Тільки для рубрик. На пілоті можна зняти телефоном.","status":"later","note":""},
+{"id":"mics","cat":"Техніка","name":"Петлички (DJI Mic або схожі)","why":"На кожного, хто говорить. На випуск з власниками треба 4.","status":"ask","note":""},
+{"id":"light","cat":"Техніка","name":"Два теплі світлові прилади","why":"Щоб обличчя не були темними в барі чи вдома.","status":"ask","note":""},
+{"id":"cards","cat":"Техніка","name":"Запасні карти пам'яті і павербанки","why":"Запис іде годину, без запасу щось обов'язково сяде.","status":"need","note":""},
+{"id":"recorder","cat":"Техніка","name":"Окремий аудіорекордер","why":"DJI Mic пише звук сам, тож окремий рекордер не потрібен.","status":"skip","note":""},
+{"id":"studio","cat":"Локація","name":"Орендована студія","why":"Знімаємо в місцях гостей.","status":"skip","note":""},
+{"id":"permit","cat":"Локація","name":"Дозвіл знімати в закладі","why":"Письмово, хоча б повідомленням, на кожну зйомку.","status":"need","note":""},
+{"id":"host","cat":"Люди","name":"Ведучий","why":"Готує гостей і веде розмову.","status":"have","note":""},
+{"id":"videographer","cat":"Люди","name":"Відеограф","why":"Камери, світло, звук на зйомці.","status":"ask","note":""},
+{"id":"editor","cat":"Люди","name":"Монтажер","why":"Повний випуск і кліпи.","status":"ask","note":""},
+{"id":"smm","cat":"Люди","name":"SMM","why":"Тексти, обкладинки, графік, коментарі.","status":"ask","note":""},
+{"id":"drive","cat":"Робота","name":"Спільна папка для файлів","why":"Google Drive або схожа, з доступом для всієї команди.","status":"need","note":""},
+{"id":"chat","cat":"Робота","name":"Спільний чат команди","why":"Одне місце для дат, правок і файлів.","status":"need","note":""},
+{"id":"ads","cat":"Робота","name":"Платна реклама","why":"Не на старті. Спершу дивимося, що заходить само.","status":"skip","note":""}
+]}</script>
+
+<script id="page-script">
+(function(){
+const ST={have:"Є",need:"Треба",later:"Пізніше",ask:"Уточнити",skip:"Не треба"};
+const ORDER=["have","need","ask","later","skip"];
+const COLOR={have:"var(--have)",need:"var(--need)",later:"var(--later)",ask:"var(--ask)",skip:"var(--skip)"};
+document.getElementById("root").innerHTML=document.getElementById("static-src").textContent;
+let state;
+try{state=JSON.parse(document.getElementById("state").textContent)}catch(e){state={updated:"",items:[]}}
+if(!state||!Array.isArray(state.items))state={updated:"",items:[]};
+state.items=state.items.filter(i=>i&&typeof i==="object").map(i=>({id:String(i.id||Math.random().toString(36).slice(2,9)),cat:String(i.cat||"Інше"),name:String(i.name||""),why:String(i.why||""),status:ST[i.status]?i.status:"ask",note:String(i.note||"")}));
+let filter="all",editing=false,dirty=false,saving=false,api=null;
+const draft={name:"",cat:"",why:"",st:"need"};
+const $=id=>document.getElementById(id);
+const el=(tag,attrs,...kids)=>{const n=document.createElement(tag);for(const k in attrs||{}){if(k==="class")n.className=attrs[k];else if(k==="text")n.textContent=attrs[k];else n.setAttribute(k,attrs[k])}kids.forEach(c=>c&&n.append(c));return n};
+function fmtDate(s){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||"");if(!m)return"—";const mon=["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"];return +m[3]+" "+mon[+m[2]-1]+" "+m[1]}
+function render(){
+  $("upd").textContent=fmtDate(state.updated);
+  const c=$("counts");c.replaceChildren();
+  ORDER.forEach(s=>{const n=state.items.filter(i=>i.status===s).length;const d=el("div",{class:"count"});const st=el("strong",{text:String(n)});st.style.color=COLOR[s];d.append(st,el("span",{text:ST[s]}));c.append(d)});
+  const f=$("filters");f.replaceChildren();
+  [["all","Усе"]].concat(ORDER.map(s=>[s,ST[s]])).forEach(([k,l])=>{const b=el("button",{type:"button","aria-pressed":String(filter===k),text:l});b.onclick=()=>{filter=k;render()};f.append(b)});
+  const list=$("list");list.replaceChildren();
+  const cats=[...new Set(state.items.map(i=>i.cat))];
+  cats.forEach(cat=>{
+    const items=state.items.filter(i=>i.cat===cat&&(filter==="all"||i.status===filter));
+    if(!items.length)return;
+    const g=el("div",{class:"group"},el("h3",{text:cat}));
+    items.forEach(i=>{
+      const row=el("div",{class:"item"});row.style.setProperty("--c",COLOR[i.status]);
+      row.append(el("div",{class:"name",text:i.name}),el("span",{class:"pill s-"+i.status,text:ST[i.status]}));
+      if(i.why)row.append(el("div",{class:"why",text:i.why}));
+      if(i.note&&!editing)row.append(el("div",{class:"note",text:i.note}));
+      if(editing){
+        const er=el("div",{class:"edit-row"});
+        const sel=el("select",{id:"st-"+i.id,"aria-label":"Статус: "+i.name});
+        ORDER.forEach(s=>{const o=el("option",{value:s,text:ST[s]});if(s===i.status)o.selected=true;sel.append(o)});
+        sel.onchange=()=>{i.status=sel.value;markDirty();render()};
+        const note=el("input",{id:"nt-"+i.id,type:"text",placeholder:"Примітка (необов'язково)",value:i.note,"aria-label":"Примітка: "+i.name,maxlength:"200"});
+        note.oninput=()=>{i.note=note.value;markDirty()};
+        const del=el("button",{type:"button",class:"del",text:"Видалити"});
+        del.onclick=()=>{if(del.dataset.sure){state.items=state.items.filter(x=>x!==i);markDirty();render()}else{del.dataset.sure="1";del.textContent="Точно видалити?"}};
+        er.append(sel,note,del);row.append(er);
+      }
+      g.append(row);
+    });
+    list.append(g);
+  });
+  if(!list.children.length)list.append(el("p",{class:"hint",text:"Нічого з таким статусом."}));
+  renderEdit();
+}
+function markDirty(){dirty=true;const m=$("emsg");if(m)m.textContent="Є незбережені зміни"}
+function renderEdit(){
+  const slot=$("editslot");slot.replaceChildren();
+  const old=document.querySelector(".editbar");if(old)old.remove();
+  if(!api)return;
+  if(!editing){const b=el("button",{type:"button",class:"btn",text:"Редагувати статуси"});b.style.marginTop="18px";b.onclick=()=>{editing=true;render()};slot.append(b);return}
+  const add=el("div",{class:"add"},el("h3",{text:"Додати пункт"}));
+  const r=el("div",{class:"row"});
+  const nm=el("input",{id:"add-name",type:"text",placeholder:"Назва",maxlength:"80",value:draft.name});nm.oninput=()=>{draft.name=nm.value};
+  const cats=[...new Set(state.items.map(i=>i.cat))];
+  const ct=el("input",{id:"add-cat",type:"text",placeholder:"Розділ",list:"cats",maxlength:"40",value:draft.cat});ct.oninput=()=>{draft.cat=ct.value};
+  const dl=el("datalist",{id:"cats"});cats.forEach(c=>dl.append(el("option",{value:c})));
+  const st=el("select",{id:"add-st","aria-label":"Статус"});ORDER.forEach(s=>{const o=el("option",{value:s,text:ST[s]});if(s===draft.st)o.selected=true;st.append(o)});st.onchange=()=>{draft.st=st.value};
+  r.append(nm,ct,st);
+  const wy=el("input",{id:"add-why",type:"text",placeholder:"Навіщо або пояснення",maxlength:"200",value:draft.why});wy.oninput=()=>{draft.why=wy.value};
+  const ab=el("button",{type:"button",class:"btn",text:"Додати"});
+  ab.onclick=()=>{if(!nm.value.trim()){nm.focus();return}state.items.push({id:Math.random().toString(36).slice(2,9),cat:ct.value.trim()||"Інше",name:nm.value.trim(),why:wy.value.trim(),status:st.value,note:""});draft.name=draft.cat=draft.why="";markDirty();render()};
+  add.append(r,dl,wy,ab);slot.append(add);
+  const bar=el("div",{class:"editbar"});const inn=el("div",{class:"in"});
+  const msg=el("span",{class:"msg",id:"emsg",text:dirty?"Є незбережені зміни":"Зміни побачать усі, хто має посилання"});
+  const btns=el("div");btns.style.display="flex";btns.style.gap="8px";
+  const cancel=el("button",{type:"button",class:"btn",text:"Скасувати"});
+  cancel.onclick=()=>{dirty=false;location.reload()};
+  const save=el("button",{type:"button",class:"btn primary",text:saving?"Зберігаю…":"Зберегти для всіх"});
+  if(saving)save.disabled=true;
+  save.onclick=doSave;
+  btns.append(cancel,save);inn.append(msg,btns);bar.append(inn);document.body.append(bar);
+}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function buildDoc(){
+  const d=new Date();state.updated=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const json=JSON.stringify(state).replace(/</g,"\\u003c");
+  const head=document.querySelectorAll("title,meta[name='claude:viewport-fit-sides'],link[rel='stylesheet']");
+  let pre="";head.forEach(n=>{if(n.tagName==="TITLE")pre+="<title>"+esc(n.textContent)+"</title>\n";else if(n.tagName==="META")pre+='<meta name="claude:viewport-fit-sides" content="cover">\n';else pre+='<link rel="stylesheet" href="'+esc(n.getAttribute("href"))+'">\n'});
+  const style='<style id="page-style">'+$("page-style").textContent+"</style>\n";
+  const src=$("static-src").textContent;
+  const script='<script id="page-script">'+$("page-script").textContent+"<\/script>";
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>'+pre+style+'<div id="root"></div>\n<script type="text/plain" id="static-src">'+src+"<\/script>\n"+'<script type="application/json" id="state">'+json+"<\/script>\n"+script+"</body></html>";
+}
+async function doSave(){
+  if(saving)return;saving=true;renderEdit();
+  try{await api.publish(buildDoc());dirty=false;saving=false;editing=false;render()}
+  catch(e){saving=false;const code=e&&e.code;
+    if(code==="conflict"){dirty=false;renderEdit();const m=$("emsg");if(m)m.textContent="Хтось зберіг раніше, сторінка оновлюється"}
+    else if(["not_writer","not_granted","not_declared","consent_required","capability_disabled","capability_removed"].includes(code)){dirty=false;api=null;editing=false;render()}
+    else{renderEdit();const m=$("emsg");if(m)m.textContent=code==="rate_limited"?"Забагато збережень, спробуй за хвилину":"Не вдалося зберегти, спробуй ще раз"}}
+}
+window.addEventListener("beforeunload",e=>{if(dirty&&!saving){e.preventDefault();e.returnValue=""}});
+render();
+(async()=>{try{if(!window.claude||!window.claude.use)return;const [a,u]=await Promise.all([claude.use("artifact"),claude.use("user")]);if(!a)return;let ok=false;try{ok=u?!!(await u.canEdit()):false}catch(e){}if(ok){api=a;render()}}catch(e){}})();
+})();
+</script>
+
+</body>
+</html>
